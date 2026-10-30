@@ -1,26 +1,100 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>My Focus Board</title>
+
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <header>
-    <h1>My Focus Board</h1>
-    <p>Organise your tasks and stay focused.</p>
-  </header>
 
-  <main>
-    <form id="task-form">
-      <input type="text" id="task-input" placeholder="Enter a task..." required>
-      <button type="submit">Add Task</button>
-    </form>
-    <ul id="task-list"></ul>
+<body>
+
+  <main class="container">
+
+    <header>
+      <h1>My Focus Board</h1>
+      <p>Organise your tasks, set priorities and track your progress.</p>
+    </header>
+
+    <section aria-labelledby="add-heading">
+      <h2 id="add-heading">Add a New Task</h2>
+
+      <form id="task-form">
+
+        <label for="task-input">Task title</label>
+        <input
+          type="text"
+          id="task-input"
+          placeholder="What do you need to do?"
+          maxlength="80"
+          required
+        >
+
+        <label for="task-priority">Choose priority</label>
+        <select id="task-priority">
+          <option value="Low">Low</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="High">High</option>
+        </select>
+
+        <button type="submit">Add Task</button>
+
+      </form>
+
+      <p id="app-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section aria-labelledby="search-heading">
+      <h2 id="search-heading">Search Tasks</h2>
+
+      <label for="task-search">Search by task title</label>
+      <input
+        type="search"
+        id="task-search"
+        placeholder="Search your tasks..."
+      >
+    </section>
+
+    <section aria-labelledby="filter-heading">
+      <h2 id="filter-heading">Filter Tasks</h2>
+
+      <button type="button" data-filter="all">All Tasks</button>
+      <button type="button" data-filter="open">Open Tasks</button>
+      <button type="button" data-filter="completed">Completed Tasks</button>
+    </section>
+
+    <section aria-labelledby="progress-heading">
+      <h2 id="progress-heading">Your Progress</h2>
+
+      <p id="task-stats">
+        Total: 0 | Open: 0 | Completed: 0 | Progress: 0%
+      </p>
+    </section>
+
+    <section aria-labelledby="tasks-heading">
+      <h2 id="tasks-heading">Your Tasks</h2>
+
+      <ul id="task-list">
+      </ul>
+    </section>
+
+    <section aria-labelledby="actions-heading">
+      <h2 id="actions-heading">More Actions</h2>
+
+      <button type="button" id="undo-delete" disabled>
+        Undo Delete
+      </button>
+
+      <button type="button" id="load-suggestions">
+        Load Suggestions
+      </button>
+    </section>
+
   </main>
 
   <script type="module" src="src/app.js"></script>
+
 </body>
 </html>

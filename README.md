@@ -1,5 +1,4 @@
 
-
 # GitHub and Scrum Practice
 
 ## Project Overview

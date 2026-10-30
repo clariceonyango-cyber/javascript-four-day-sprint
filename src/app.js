@@ -1,66 +1,209 @@
+import {
+  Task,
+  addTask,
+  searchTasks,
+  getTaskStats
+} from "./task.js";
 
-const taskForm = document.getElementById("task-form");
-const taskInput = document.getElementById("task-input");
-const taskList = document.getElementById("task-list");
+import {
+  saveTasks,
+  loadTasks
+} from "./storage.js";
 
-let tasks = JSON.parse(localStorage.getItem("focusTasks")) || [];
+import { fetchSuggestions } from "./api.js";
 
-function saveTasks() {
-  localStorage.setItem("focusTasks", JSON.stringify(tasks));
+const form = document.querySelector("#task-form");
+const input = document.querySelector("#task-input");
+const priorityInput = document.querySelector("#task-priority");
+const taskList = document.querySelector("#task-list");
+const statsElement = document.querySelector("#task-stats");
+const searchInput = document.querySelector("#task-search");
+const undoButton = document.querySelector("#undo-delete");
+const suggestionsButton = document.querySelector("#load-suggestions");
+
+let tasks = loadTasks();
+let currentFilter = "all";
+let searchTerm = "";
+let deletedTask = null;
+
+function showMessage(message) {
+  let messageElement = document.querySelector("#app-message");
+
+  if (!messageElement) {
+    messageElement = document.createElement("p");
+    messageElement.id = "app-message";
+    messageElement.setAttribute("role", "status");
+    form.after(messageElement);
+  }
+
+  messageElement.textContent = message;
 }
 
-function displayTasks() {
-  taskList.innerHTML = "";
+function updateTasks() {
+  saveTasks(tasks);
+  renderTasks();
+}
 
-  tasks.forEach((task) => {
-    const li = document.createElement("li");
-    if (task.completed) li.classList.add("completed");
+function renderTasks() {
+  taskList.replaceChildren();
 
-    const span = document.createElement("span");
-    span.textContent = task.text;
-    li.appendChild(span);
+  let visibleTasks = searchTasks(tasks, searchTerm);
 
-    const actions = document.createElement("div");
-    actions.className = "task-actions";
+  if (currentFilter === "open") {
+    visibleTasks = visibleTasks.filter(task => !task.completed);
+  }
+
+  if (currentFilter === "completed") {
+    visibleTasks = visibleTasks.filter(task => task.completed);
+  }
+
+  visibleTasks.forEach(task => {
+    const item = document.createElement("li");
+
+    const title = document.createElement("span");
+    title.textContent = task.title;
+
+    if (task.completed) {
+      title.style.textDecoration = "line-through";
+    }
+
+    const priority = document.createElement("span");
+    priority.textContent = `Priority: ${task.priority}`;
 
     const completeButton = document.createElement("button");
+    completeButton.type = "button";
     completeButton.textContent = task.completed ? "Undo" : "Complete";
-    completeButton.addEventListener("click", () => {
-      task.completed = !task.completed;
-      saveTasks();
-      displayTasks();
-    });
+    completeButton.dataset.action = "toggle";
+    completeButton.dataset.id = task.id;
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.textContent = "Edit";
+    editButton.dataset.action = "edit";
+    editButton.dataset.id = task.id;
 
     const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
     deleteButton.textContent = "Delete";
-    deleteButton.className = "delete-button";
-    deleteButton.addEventListener("click", () => {
-      tasks = tasks.filter((item) => item.id !== task.id);
-      saveTasks();
-      displayTasks();
-    });
+    deleteButton.dataset.action = "delete";
+    deleteButton.dataset.id = task.id;
 
-    actions.append(completeButton, deleteButton);
-    li.appendChild(actions);
-    taskList.appendChild(li);
+    item.append(title, priority, completeButton, editButton, deleteButton);
+    taskList.appendChild(item);
   });
+
+  const stats = getTaskStats(tasks);
+
+  statsElement.textContent =
+    `Total: ${stats.total} | Open: ${stats.open} | ` +
+    `Completed: ${stats.completed} | Progress: ${stats.percentage}%`;
+
+  undoButton.disabled = !deletedTask;
 }
 
-taskForm.addEventListener("submit", (event) => {
+form.addEventListener("submit", event => {
   event.preventDefault();
 
-  const text = taskInput.value.trim();
-  if (!text) return;
+  const title = input.value.trim();
 
-  tasks.push({
-    id: Date.now(),
-    text: text,
-    completed: false
-  });
+  if (!title) {
+    showMessage("Please enter a task.");
+    return;
+  }
 
-  saveTasks();
-  displayTasks();
-  taskInput.value = "";
+  if (title.length > 80) {
+    showMessage("Task title must be 80 characters or fewer.");
+    return;
+  }
+
+  try {
+    const priority = priorityInput.value;
+    const newTask = new Task(title, priority);
+
+    tasks = addTask(tasks, newTask);
+
+    input.value = "";
+    showMessage("Task added successfully.");
+    updateTasks();
+
+  } catch (error) {
+    showMessage(error.message);
+  }
 });
 
-displayTasks();
+taskList.addEventListener("click", event => {
+  const button = event.target.closest("button[data-action]");
+
+  if (!button) return;
+
+  const task = tasks.find(item => item.id === button.dataset.id);
+
+  if (!task) return;
+
+  if (button.dataset.action === "toggle") {
+    task.toggleComplete();
+    showMessage("Task updated.");
+  }
+
+  if (button.dataset.action === "edit") {
+    const newTitle = prompt("Enter the new task title:", task.title);
+
+    if (newTitle === null) return;
+
+    try {
+      task.rename(newTitle);
+    } catch (error) {
+      showMessage(error.message);
+      return;
+    }
+  }
+
+  if (button.dataset.action === "delete") {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+
+    deletedTask = task;
+    tasks = tasks.filter(item => item.id !== task.id);
+    showMessage("Task deleted. You can undo this action.");
+  }
+
+  updateTasks();
+});
+
+searchInput.addEventListener("input", event => {
+  searchTerm = event.target.value;
+  renderTasks();
+});
+
+document.querySelectorAll("[data-filter]").forEach(button => {
+  button.addEventListener("click", () => {
+    currentFilter = button.dataset.filter;
+    renderTasks();
+  });
+});
+
+undoButton.addEventListener("click", () => {
+  if (!deletedTask) return;
+
+  tasks = [...tasks, deletedTask];
+  deletedTask = null;
+
+  showMessage("Task restored.");
+  updateTasks();
+});
+
+suggestionsButton.addEventListener("click", async () => {
+  suggestionsButton.disabled = true;
+  suggestionsButton.textContent = "Loading...";
+
+  try {
+    const suggestions = await fetchSuggestions();
+    showMessage(`Loaded ${suggestions.length} online suggestions.`);
+  } catch (error) {
+    showMessage(error.message);
+  } finally {
+    suggestionsButton.disabled = false;
+    suggestionsButton.textContent = "Load Suggestions";
+  }
+});
+
+renderTasks();
