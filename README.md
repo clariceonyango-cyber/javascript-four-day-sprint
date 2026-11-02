@@ -65,3 +65,31 @@ Day 2 focused on JavaScript arrays, objects, array methods and object-oriented p
 - `src/day2-practice.js`
 - `notes/day2-reflection.md`
 
+## Day 3 – Make the Browser Interactive and Persistent
+
+Day 3 focused on connecting JavaScript data to the browser using the DOM, events, forms and localStorage.
+
+### Topics Practised
+- DOM selection and manipulation
+- Rendering task lists
+- Event listeners and event delegation
+- Form submission and validation
+- Case-insensitive search
+- Composable task filters
+- Duplicate task prevention
+- Safe text rendering and accessibility
+- JSON and localStorage persistence
+- Corrupted storage recovery
+
+### Required Challenges
+- Challenge 9: Case-insensitive search
+- Challenge 10: Composable filters
+- Challenge 11: Duplicate prevention
+- Challenge 12: Corrupted storage recovery
+
+### Files Added
+- `day3-practice.html`
+- `src/day3-practice.js`
+- `notes/day3-reflection.md`
+
+

@@ -230,22 +230,16 @@ exportButton.addEventListener("click", () => {
 console.log("Import button found:", importButton);
 
 const importFile = document.querySelector("#import-file");
-importFile.addEventListener("change", () => {
-  console.log("File selected:", importFile.files[0]);
-});
-
-console.log("Import file found:", importFile);
-
 
 importButton.addEventListener("click", () => {
-  console.log("Import button clicked!");
+  importFile.value = "";
+  importFile.click();
+});
 
+importFile.addEventListener("change", () => {
   const file = importFile.files[0];
-  console.log("Selected file:", file);
-
 
   if (!file) {
-    showMessage("Please select a JSON file first.");
     return;
   }
 
@@ -254,32 +248,42 @@ importButton.addEventListener("click", () => {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      console.log("Imported JSON data:", data);
-    
 
-
-
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid file format.");
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error("Invalid or empty file.");
       }
 
       const importedTasks = data
         .map(item => Task.fromData(item))
         .filter(task => task !== null);
-        console.log("Converted tasks:", importedTasks);
 
+      if (importedTasks.length !== data.length) {
+        throw new Error("Invalid task data.");
+      }
 
-     tasks = importedTasks;
-updateTasks();
-showMessage("Tasks imported successfully.");
+      const confirmed = confirm(
+        "Are you sure you want to replace your current tasks?"
+      );
 
+      if (!confirmed) {
+        return;
+      }
+
+      tasks = importedTasks;
+      updateTasks();
+
+      showMessage("Tasks imported successfully.");
 
     } catch (error) {
-      showMessage("Import failed. Please choose a valid JSON file.");
+      showMessage(
+        "Import failed. Your existing tasks have been kept."
+      );
     }
+  };
+
+  reader.onerror = () => {
+    showMessage("Could not read the selected file.");
   };
 
   reader.readAsText(file);
 });
-<script type="module" src="./src/day1-practice.js"></script>
-
