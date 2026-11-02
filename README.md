@@ -40,3 +40,28 @@ I practised JavaScript classes, functions, arrays, objects, DOM manipulation, ev
 
 ## Conclusion
 This project helped me apply JavaScript concepts by building a functional task management application.
+
+## Day 2 – Model Collections and Design with Objects
+
+Day 2 focused on JavaScript arrays, objects, array methods and object-oriented programming.
+
+### Topics Practised
+- Arrays and object records
+- Array indexes and object properties
+- References and immutability
+- map(), filter(), find(), some(), every() and reduce()
+- Classes, constructors and methods
+- Private fields and encapsulation
+- Inheritance and composition
+- Task management and repository design
+
+### Required Challenges
+- Immutable task toggle
+- Purchase summary
+- Inheritance and composition
+- Task statistics
+
+### Files Added
+- `src/day2-practice.js`
+- `notes/day2-reflection.md`
+

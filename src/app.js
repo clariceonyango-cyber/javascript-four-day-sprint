@@ -281,4 +281,5 @@ showMessage("Tasks imported successfully.");
 
   reader.readAsText(file);
 });
+<script type="module" src="./src/day1-practice.js"></script>
 
