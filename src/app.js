@@ -1,3 +1,4 @@
+
 import {
   Task,
   addTask,
@@ -20,6 +21,9 @@ const statsElement = document.querySelector("#task-stats");
 const searchInput = document.querySelector("#task-search");
 const undoButton = document.querySelector("#undo-delete");
 const suggestionsButton = document.querySelector("#load-suggestions");
+const exportButton = document.querySelector("#export-tasks");
+const importButton = document.querySelector("#import-tasks");
+const importFile = document.querySelector("#import-file");
 
 let tasks = loadTasks();
 let currentFilter = "all";
@@ -88,7 +92,14 @@ function renderTasks() {
     deleteButton.dataset.action = "delete";
     deleteButton.dataset.id = task.id;
 
-    item.append(title, priority, completeButton, editButton, deleteButton);
+    item.append(
+      title,
+      priority,
+      completeButton,
+      editButton,
+      deleteButton
+    );
+
     taskList.appendChild(item);
   });
 
@@ -101,6 +112,7 @@ function renderTasks() {
   undoButton.disabled = !deletedTask;
 }
 
+// Add a task
 form.addEventListener("submit", event => {
   event.preventDefault();
 
@@ -131,6 +143,7 @@ form.addEventListener("submit", event => {
   }
 });
 
+// Complete, edit and delete tasks
 taskList.addEventListener("click", event => {
   const button = event.target.closest("button[data-action]");
 
@@ -159,21 +172,32 @@ taskList.addEventListener("click", event => {
   }
 
   if (button.dataset.action === "delete") {
-    if (!confirm("Are you sure you want to delete this task?")) return;
+    if (!confirm("Are you sure you want to delete this task?")) {
+      return;
+    }
 
-    deletedTask = task;
+    const taskIndex = tasks.findIndex(item => item.id === task.id);
+
+    deletedTask = {
+      task: task,
+      index: taskIndex
+    };
+
     tasks = tasks.filter(item => item.id !== task.id);
+
     showMessage("Task deleted. You can undo this action.");
   }
 
   updateTasks();
 });
 
+// Search tasks
 searchInput.addEventListener("input", event => {
   searchTerm = event.target.value;
   renderTasks();
 });
 
+// Filter tasks
 document.querySelectorAll("[data-filter]").forEach(button => {
   button.addEventListener("click", () => {
     currentFilter = button.dataset.filter;
@@ -181,16 +205,23 @@ document.querySelectorAll("[data-filter]").forEach(button => {
   });
 });
 
+// Undo the most recent deletion
 undoButton.addEventListener("click", () => {
   if (!deletedTask) return;
 
-  tasks = [...tasks, deletedTask];
+  tasks.splice(
+    deletedTask.index,
+    0,
+    deletedTask.task
+  );
+
   deletedTask = null;
 
-  showMessage("Task restored.");
+  showMessage("Task restored to its original position.");
   updateTasks();
 });
 
+// Load online suggestions
 suggestionsButton.addEventListener("click", async () => {
   suggestionsButton.disabled = true;
   suggestionsButton.textContent = "Loading...";
@@ -206,9 +237,7 @@ suggestionsButton.addEventListener("click", async () => {
   }
 });
 
-renderTasks();
-const exportButton = document.querySelector("#export-tasks");
-
+// Export tasks
 exportButton.addEventListener("click", () => {
   const data = JSON.stringify(tasks, null, 2);
 
@@ -217,8 +246,8 @@ exportButton.addEventListener("click", () => {
   });
 
   const url = URL.createObjectURL(blob);
-
   const link = document.createElement("a");
+
   link.href = url;
   link.download = "focus-board-tasks.json";
   link.click();
@@ -226,22 +255,19 @@ exportButton.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 
   showMessage("Tasks exported successfully.");
-});const importButton = document.querySelector("#import-tasks");
-console.log("Import button found:", importButton);
+});
 
-const importFile = document.querySelector("#import-file");
-
+// Open the import file picker
 importButton.addEventListener("click", () => {
   importFile.value = "";
   importFile.click();
 });
 
+// Import tasks
 importFile.addEventListener("change", () => {
   const file = importFile.files[0];
 
-  if (!file) {
-    return;
-  }
+  if (!file) return;
 
   const reader = new FileReader();
 
@@ -265,13 +291,12 @@ importFile.addEventListener("change", () => {
         "Are you sure you want to replace your current tasks?"
       );
 
-      if (!confirmed) {
-        return;
-      }
+      if (!confirmed) return;
 
       tasks = importedTasks;
-      updateTasks();
+      deletedTask = null;
 
+      updateTasks();
       showMessage("Tasks imported successfully.");
 
     } catch (error) {
@@ -287,3 +312,7 @@ importFile.addEventListener("change", () => {
 
   reader.readAsText(file);
 });
+
+// Display saved tasks when the page opens
+renderTasks();
+
