@@ -207,3 +207,78 @@ suggestionsButton.addEventListener("click", async () => {
 });
 
 renderTasks();
+const exportButton = document.querySelector("#export-tasks");
+
+exportButton.addEventListener("click", () => {
+  const data = JSON.stringify(tasks, null, 2);
+
+  const blob = new Blob([data], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "focus-board-tasks.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+
+  showMessage("Tasks exported successfully.");
+});const importButton = document.querySelector("#import-tasks");
+console.log("Import button found:", importButton);
+
+const importFile = document.querySelector("#import-file");
+importFile.addEventListener("change", () => {
+  console.log("File selected:", importFile.files[0]);
+});
+
+console.log("Import file found:", importFile);
+
+
+importButton.addEventListener("click", () => {
+  console.log("Import button clicked!");
+
+  const file = importFile.files[0];
+  console.log("Selected file:", file);
+
+
+  if (!file) {
+    showMessage("Please select a JSON file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      console.log("Imported JSON data:", data);
+    
+
+
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid file format.");
+      }
+
+      const importedTasks = data
+        .map(item => Task.fromData(item))
+        .filter(task => task !== null);
+        console.log("Converted tasks:", importedTasks);
+
+
+     tasks = importedTasks;
+updateTasks();
+showMessage("Tasks imported successfully.");
+
+
+    } catch (error) {
+      showMessage("Import failed. Please choose a valid JSON file.");
+    }
+  };
+
+  reader.readAsText(file);
+});
+
