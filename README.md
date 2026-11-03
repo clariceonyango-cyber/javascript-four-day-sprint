@@ -86,7 +86,7 @@ JavaScript-four-day-sprint/
     ├── storage.js
     ├── api.js
     ├── day1-practice.js
-    ├── day2 -practice.js
+    ├── day2-practice.js
     ├── day3-practice.html
     ├── day3-practice.js
     ├── day4-practice.html
@@ -104,6 +104,8 @@ JavaScript-four-day-sprint/
 4. Use the Focus Board to add, complete, search, and manage tasks.
 5. Open `src/day3-practice.html` for Day 3 practice.
 6. Open `src/day4-practice.html` for Day 4 practice.
+7. Run Day 1 and Day 2 practice files using Node.js.
+8. Open the Day 3 and Day 4 HTML files in your browser using Live Server.
 
 ## Manual Testing
 
